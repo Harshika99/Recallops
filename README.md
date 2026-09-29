@@ -1,163 +1,54 @@
 # RecallOps — AI Incident Response Agent
-
-> **Turn past incidents into faster decisions with Hindsight persistent memory.**
-
----
-
-## Problem
-
-Production incidents frequently repeat across services and deployment cycles, but on-call engineers waste precious minutes or hours rediscovering diagnoses, re-debugging connection pools, or hunting for old Slack threads and post-mortems. Stateless LLMs treat every incident like day one—they lack organizational context, cannot recall what fixed an outage last week, and cannot improve from operational experience.
-
-## Solution
-
-**RecallOps** is an AI incident-response agent powered by **Hindsight persistent memory**. It remembers an organization's historical production outages, recalls relevant precedents when a new incident occurs, provides context-aware root cause analysis with recommended actions, and retains human-verified fixes into persistent memory so the next outage is resolved even faster.
-
-## Key Innovation
-
-**The agent continuously improves through accumulated operational experience.** Rather than relying on generic prompt engineering or ephemeral chat history, RecallOps grounds every troubleshooting recommendation in verified institutional knowledge.
+> **Turn past production outages into faster decisions with Hindsight persistent memory.**
 
 ---
 
-## Hindsight Usage
+## 📌 Executive Summary
 
-The application demonstrates the four pillars of Hindsight memory:
+**RecallOps** is an autonomous AI incident-response agent designed for Site Reliability Engineers (SREs) and DevOps teams. Unlike conventional stateless AI chatbots that diagnose every outage from scratch, RecallOps leverages **Hindsight persistent memory** to remember an organization's historical incidents, recall relevant precedents when new alerts fire, provide context-aware root cause analysis, and continuously learn verified human resolutions for future outages.
 
-* **RETAIN**: Historical incident post-mortems and newly verified incident resolutions are committed to Hindsight persistent memory (`bank_id: recallops-demo`).
-* **RECALL**: When a new incident is submitted, RecallOps queries Hindsight memory for semantically matching symptoms, connection patterns, and previous fixes.
-* **REASON**: The LLM synthesizes live error logs with the recalled historical memories to produce a structured, high-confidence diagnosis without hallucination.
-* **LEARN**: Once the on-call engineer verifies the fix, clicking **"Save Resolution to Memory"** retains the solution back into Hindsight, closing the learning loop.
+The core differentiator is simple yet transformative: **The agent gets smarter and faster with every incident it resolves.**
 
 ---
 
-## Architecture
+## 🚨 The Problem
 
-```
-                          ┌───────────────────────────┐
-                          │   Active Incident Report  │
-                          │   (Service, Logs, Env)    │
-                          └─────────────┬─────────────┘
-                                        │
-                                        ▼
-                          ┌───────────────────────────┐
-                          │   Flask Backend API       │
-                          └──────┬─────────────▲──────┘
-                                 │             │
-                    1. Semantic  │             │ 4. Retain Verified Fix
-                    Recall Query │             │    (Close Learning Loop)
-                                 ▼             │
-    ┌──────────────────────────────────────────┴────────────────────────┐
-    │                 HINDSIGHT PERSISTENT MEMORY                       │
-    │  • Bank: recallops-demo                                           │
-    │  • Historical Post-Mortems (Payment, Redis, DB Pool, Auth 502)     │
-    │  • Newly Retained Verified Resolutions                            │
-    └────────────────────────────┬──────────────────────────────────────┘
-                                 │
-                     2. Relevant │ Historical
-                        Memories │
-                                 ▼
-                          ┌─────────────┐
-                          │     LLM     │ (Groq llama-3.3-70b-versatile
-                          │  Reasoning  │  or OpenAI gpt-4o-mini)
-                          └──────┬──────┘
-                                 │
-                     3. Structured Diagnosis
-                        & Mitigations
-                                 ▼
-                     ┌───────────────────────┐
-                     │   RecallOps UI        │
-                     │  • LIKELY CAUSE       │
-                     │  • CONFIDENCE         │
-                     │  • SIMILAR INCIDENTS  │
-                     │  • RECOMMENDED ACTIONS│
-                     │  • WHY MEMORY HELPED  │
-                     └───────────────────────┘
-```
+* **Recurring Outages:** Production incidents frequently repeat across deployment cycles (e.g., database connection pool exhaustion, Redis cache stampedes, or misconfigured TLS handshakes).
+* **Tribal Knowledge Loss:** Solutions remain scattered across Slack threads, Jira tickets, and buried Google Docs. When on-call at 3:00 AM, engineers waste hours rediscovering solutions that someone already solved last month.
+* **The "Day-One" Flaw of Stateless LLMs:** Standard AI coding assistants and chatbots have zero memory of your production architecture or past post-mortems. They offer generic advice rather than institutional operational memory.
 
 ---
 
-## Setup & Running
+## 💡 The Solution: Hindsight-Powered Operational Memory
 
-### 1. Clone & Enter Directory
-```powershell
-cd RecallOps_Hackathon_Prototype
-```
+RecallOps bridges the gap between active incident telemetry and persistent organizational knowledge. By embedding the **Hindsight memory engine**, RecallOps implements a continuous operational feedback loop:
 
-### 2. Create and Activate Virtual Environment
-```powershell
-# Create venv (if not already created)
-python -m venv .venv
+$$\text{RETAIN} \longrightarrow \text{RECALL} \longrightarrow \text{REASON} \longrightarrow \text{LEARN}$$
 
-# Windows activation:
-.\.venv\Scripts\activate
-
-# macOS / Linux activation:
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies
-```powershell
-pip install -r requirements.txt
-```
-
-### 4. Configure Environment Variables
-```powershell
-# Copy template
-copy .env.example .env
-```
-
-Edit `.env` and fill in your API credentials:
-```ini
-HINDSIGHT_API_KEY=your_hindsight_api_key_here
-HINDSIGHT_URL=https://api.hindsight.vectorize.io
-HINDSIGHT_BANK_ID=recallops-demo
-
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
-```
-
-*(Note: If you prefer OpenAI, you can set `OPENAI_API_KEY=your_key` instead of `GROQ_API_KEY`.)*
-
-### 5. Start the Application
-```powershell
-python app.py
-```
-
-Open your browser to: **`http://127.0.0.1:5000`**
+1. **RETAIN (Institutional Memory):** Historical post-mortems, architecture quirks, and verified resolutions are indexed into persistent Hindsight banks (`recallops-demo`).
+2. **RECALL (Semantic Precedents):** When an alert triggers, RecallOps queries Hindsight for semantically matching symptoms, connection patterns, and previous fixes—even when current logs are worded completely differently.
+3. **REASON (Context-Aware Diagnosis):** The LLM synthesizes live error logs alongside retrieved historical precedents to output a structured 5-part triage report:
+   * **LIKELY CAUSE:** Concrete technical hypothesis backed by past evidence.
+   * **CONFIDENCE:** Calibrated certainty score with explanation (no blind hallucinations).
+   * **SIMILAR INCIDENTS:** Direct citations of matching historical records.
+   * **RECOMMENDED ACTIONS:** Step-by-step mitigation and rollback checklist.
+   * **WHY MEMORY HELPED:** Explicit explanation of what institutional memory uncovered that a stateless LLM would have missed.
+4. **LEARN (Closing the Loop):** Once the on-call engineer confirms the actual fix, clicking **"Save Resolution to Memory"** commits the verified post-mortem back into Hindsight. Subsequent incidents immediately benefit from this learned resolution.
 
 ---
 
-## 60-Second Demo Sequence
+## 🌟 The "Wow" Moment: Proven Learning Loop
 
-1. **Verify Status**: Confirm the top pills display `HINDSIGHT MEMORY ENABLED` and your LLM model.
-2. **Seed Organizational Memory**: Click **"Load Demo Memory"**. Hindsight retains 8 realistic incident post-mortems covering Payment API, Redis saturation, database pool exhaustion, and deployment errors.
-3. **Analyze Initial Incident**: Click **Preset 1 ("1. Payment 503 Outage")**, then click **"Analyze with Memory →"**.
-   * Notice the right panel displays **"MEMORIES RECALLED"** from Hindsight.
-   * Review the diagnosis: `LIKELY CAUSE: Database connection pool exhaustion`, `CONFIDENCE: High`, `RECOMMENDED ACTIONS`, and `WHY MEMORY HELPED`.
-4. **Close the Learning Loop**: In the **"Close the Learning Loop"** panel, click **"⚡ Pre-fill Verified Fix for Demo"**, then click **"Save Resolution to Memory"**.
-   * Hindsight retains the verified fix (`"Resolution learned by Hindsight."`).
-5. **Demonstrate Experience & Recall**: Click **Preset 2 ("2. Reworded Payment (Test Learning Loop)")**:
-   * Error text: *"Customers are experiencing intermittent payment failures. The API is returning 503 responses and logs show database connection timeouts after release 2.4.1."*
-   * Click **"Analyze with Memory →"**.
-   * **The Wow Moment**: RecallOps retrieves the newly retained verified resolution from Step 4! The AI diagnosis cites the newly learned fix as the primary recommended action.
+* **Incident 1:** Payment API fails with `503 errors and DB connection timeouts after deployment v2.4.0`. The agent recalls past pool saturation issues. The engineer confirms the fix: *"Increased PostgreSQL pool size to 80 and rolled back deployment."* This resolution is retained into Hindsight.
+* **Incident 2 (Weeks later, different wording):** *"Customers are experiencing intermittent payment failures. API returns 503 and logs show database timeouts after release 2.4.1."*
+* **The Magic:** RecallOps immediately surfaces the **verified resolution** from Incident 1 at the top of the recalled memories and instructs the engineer to apply the exact verified configuration fix in minutes.
 
 ---
 
-## Environment Variables Reference
+## 🛠️ Technology Stack
 
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `HINDSIGHT_API_KEY` | Your Hindsight Cloud API key | Required |
-| `HINDSIGHT_URL` | Hindsight API base URL | `https://api.hindsight.vectorize.io` |
-| `HINDSIGHT_BANK_ID` | Persistent bank identifier | `recallops-demo` |
-| `GROQ_API_KEY` | Groq Cloud API key (recommended) | Optional (or OpenAI) |
-| `GROQ_MODEL` | Groq model identifier | `llama-3.3-70b-versatile` |
-| `OPENAI_API_KEY` | OpenAI API key (fallback if Groq unset) | Optional |
-| `PORT` | Local web server port | `5000` |
-
----
-
-## Future Improvements
-
-* Automated Slack/PagerDuty webhook ingestion for real-time incident triage.
-* Multi-modal log parsing (supporting Prometheus time-series and Kubernetes events).
-* Bi-directional sync with Jira / Confluence incident post-mortem repositories.
+* **Persistent Memory Engine:** [Hindsight](https://hindsight.vectorize.io) (`hindsight-client` Python SDK)
+* **Backend:** Python 3.13, Flask REST API
+* **Reasoning AI:** Groq Cloud (`qwen/qwen3.8-27b` / Llama-3.3) & OpenAI compatibility
+* **Frontend:** Dark-themed responsive developer console (Vanilla HTML5, CSS3, JavaScript)
+* **Audit Storage:** Local JSON audit trail (`incidents.json`)
